@@ -1,6 +1,7 @@
 module Pomodoro where
 
-import Html exposing (Html, text, p, div)
+import Html exposing (Html, text, p, div, button)
+import Html.Events exposing (onClick)
 import Signal exposing (Mailbox, mailbox, Address, sampleOn, constant, merge)
 import List exposing (head, take, length, reverse)
 import Maybe exposing (withDefault)
@@ -60,9 +61,12 @@ update action model =
             <| reverse
             <| take ((model.round+1) % length cycle) cycle
           }
-        else { model |
+        else if model.running
+        then { model |
             time = model.time+1
           }
+        else
+          model
 
     NewRound ->
       { model |
@@ -81,6 +85,9 @@ view address model =
       [ text <| "Time: " ++ toString model.time ]
     , p []
       [ text <| "Round: " ++ toString model.round ]
+    , button
+      [ onClick address ToggleRunning ]
+      [ text <| runningToggleValue model.running ]
     ]
 
 init : Model
