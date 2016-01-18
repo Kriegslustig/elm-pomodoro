@@ -19,6 +19,7 @@ type Action = Nope
   | IncrementSeconds
   | NewRound
   | ToggleRunning
+  | Reset
 
 cycle : List (Int)
 cycle =
@@ -78,6 +79,9 @@ update action model =
         running = not model.running
       }
 
+    Reset ->
+      init
+
 view : Address Action -> Model -> Html
 view address model =
   div []
@@ -88,6 +92,12 @@ view address model =
     , button
       [ onClick address ToggleRunning ]
       [ text <| runningToggleValue model.running ]
+    , button
+      [ onClick address Reset ]
+      [ text "Reset" ]
+    , button
+      [ onClick address NewRound ]
+      [ text "Skip" ]
     ]
 
 init : Model
