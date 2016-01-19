@@ -75,7 +75,7 @@ update action model =
           }
         else if model.running
         then { model |
-            background = Bg.update Bg.increment model.background
+            background = Bg.update Bg.Increment model.background
           , time = model.time+1
           }
         else

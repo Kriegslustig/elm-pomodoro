@@ -1,4 +1,4 @@
-module PomodoroBackground (Model, init, Action, update, view, increment) where
+module PomodoroBackground (Model, init, Action(..), update, view) where
 
 import Signal exposing (Address)
 import Html exposing (Html, div)
@@ -18,10 +18,6 @@ init max =
 type Action = Nope
   | Increment
   | Decrement
-
-increment : Action
-increment =
-  Increment
 
 update : Action -> Model -> Model
 update action model =
