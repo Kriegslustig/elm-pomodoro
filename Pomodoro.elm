@@ -1,8 +1,10 @@
 module Pomodoro where
 
+import PomodoroBackground as Bg
+
 import Html exposing (Html, text, p, div, button)
 import Html.Events exposing (onClick)
-import Signal exposing (Mailbox, mailbox, Address, sampleOn, constant, merge)
+import Signal exposing (Mailbox, mailbox, Address, sampleOn, constant, merge, forwardTo)
 import List exposing (head, take, length, reverse)
 import Maybe exposing (withDefault)
 import Time exposing (every, second)
@@ -13,6 +15,7 @@ type alias Model =
   , pause : Bool
   , running : Bool
   , length : Int
+  , background: Bg.Model
   }
 
 type Action = Nope
@@ -20,6 +23,7 @@ type Action = Nope
   | NewRound
   | ToggleRunning
   | Reset
+  | UpdateBg Bg.Action
 
 cycle : List (Int)
 cycle =
@@ -45,6 +49,13 @@ incTime =
     (every second)
     (constant IncrementSeconds)
 
+getCycle : List (Int) -> Int -> Int
+getCycle cycle round =
+  withDefault 0
+    <| head
+    <| reverse
+    <| take ((round+1) % length cycle) cycle
+
 update : Action -> Model -> Model
 update action model =
   case action of
@@ -57,14 +68,13 @@ update action model =
             time = 0
           , round = model.round+1
           , pause = not model.pause
-          , length = withDefault 0
-            <| head
-            <| reverse
-            <| take ((model.round+1) % length cycle) cycle
+          , length = getCycle cycle model.round
+          , background = Bg.init <| getCycle cycle model.round
           }
         else if model.running
         then { model |
-            time = model.time+1
+            background = Bg.update Bg.increment model.background
+          , time = model.time+1
           }
         else
           model
@@ -82,6 +92,11 @@ update action model =
     Reset ->
       init
 
+    UpdateBg action ->
+      { model |
+        background = Bg.update action model.background
+      }
+
 view : Address Action -> Model -> Html
 view address model =
   div []
@@ -98,6 +113,7 @@ view address model =
     , button
       [ onClick address NewRound ]
       [ text "Skip" ]
+    , Bg.view (forwardTo address UpdateBg) model.background
     ]
 
 init : Model
@@ -107,6 +123,7 @@ init =
   , pause = True
   , running = True
   , length = 0
+  , background = Bg.init 0
   }
 
 actions : Mailbox Action
