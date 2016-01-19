@@ -12,6 +12,7 @@ import Time exposing (every, second)
 type alias Model =
   { time : Int
   , round : Int
+  , work : Int
   , pause : Bool
   , running : Bool
   , length : Int
@@ -67,6 +68,7 @@ update action model =
         then { model |
             time = 0
           , round = model.round+1
+          , work = if model.pause then model.work+1 else model.work
           , pause = not model.pause
           , length = getCycle cycle model.round
           , background = Bg.init <| getCycle cycle model.round
@@ -103,7 +105,7 @@ view address model =
     [ p []
       [ text <| "Time: " ++ toString model.time ]
     , p []
-      [ text <| "Round: " ++ toString model.round ]
+      [ text <| "Round: " ++ toString model.work ]
     , button
       [ onClick address ToggleRunning ]
       [ text <| runningToggleValue model.running ]
@@ -120,6 +122,7 @@ init : Model
 init =
   { time = 0
   , round = 0
+  , work = 0
   , pause = True
   , running = True
   , length = 0
