@@ -1,10 +1,11 @@
 module Pomodoro where
 
 import PomodoroBackground as Bg
+import PomodoroBell as Bell
 
 import Html exposing (Html, text, p, div, button)
 import Html.Events exposing (onClick)
-import Signal exposing (Mailbox, mailbox, Address, sampleOn, constant, merge, forwardTo)
+import Signal exposing (map, Mailbox, mailbox, Address, sampleOn, constant, merge, forwardTo, filter)
 import List exposing (head, take, length, reverse)
 import Maybe exposing (withDefault)
 import Time exposing (every, second)
@@ -17,6 +18,7 @@ type alias Model =
   , running : Bool
   , length : Int
   , background: Bg.Model
+  , bell: Bell.Model
   }
 
 type Action = Nope
@@ -25,6 +27,7 @@ type Action = Nope
   | ToggleRunning
   | Reset
   | UpdateBg Bg.Action
+  | UpdateBell Bell.Action
 
 cycle : List (Int)
 cycle =
@@ -69,6 +72,9 @@ update action model =
             time = 0
           , round = model.round+1
           , work = if model.pause then model.work+1 else model.work
+          , bell = if model.pause
+              then Bell.update Bell.StartAudio model.bell
+              else model.bell
           , pause = not model.pause
           , length = getCycle cycle model.round
           , background = Bg.init <| getCycle cycle model.round
@@ -99,6 +105,11 @@ update action model =
         background = Bg.update action model.background
       }
 
+    UpdateBell action ->
+      { model |
+        bell = Bell.update action model.bell
+      }
+
 view : Address Action -> Model -> Html
 view address model =
   div []
@@ -116,6 +127,10 @@ view address model =
       [ onClick address NewRound ]
       [ text "Skip" ]
     , Bg.view (forwardTo address UpdateBg) model.background
+    , Bell.view (forwardTo address UpdateBell) model.bell
+    , button
+      [ onClick address (UpdateBell Bell.StartAudio) ]
+      [ text "Bell" ]
     ]
 
 init : Model
@@ -127,19 +142,24 @@ init =
   , running = True
   , length = 0
   , background = Bg.init 0
+  , bell = Bell.init "./static/bell.ogg"
   }
 
 actions : Mailbox Action
 actions =
   mailbox Nope
 
-model : Signal Action -> Signal Model
-model signal =
-  Signal.foldp update init signal
+port playSound : Signal Int
+port playSound =
+  map (\model -> model.bell.state) model
+
+model : Signal Model
+model =
+  Signal.foldp update init (merge actions.signal incTime)
 
 main : Signal Html
 main =
-  Signal.map
+  map
     (view actions.address)
-    <| model (merge actions.signal incTime)
+    model
 

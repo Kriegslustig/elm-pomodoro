@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pomodoro</title>
+  <script src='./Pomodoro.js'></script>
+</head>
+<body>
+  <script>
+    const app = Elm.fullscreen(Elm.Pomodoro)
+    ; (function () {
+      var state = 0
+      app.ports.playSound.subscribe(function (sound) {
+        if(state === sound) return
+        state = sound
+        const audioElem = document.getElementsByTagName('AUDIO')[0]
+        audioElem.play()
+      })
+    })()
+  </script>
+</body>
+</html>
+
