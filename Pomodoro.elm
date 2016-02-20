@@ -67,25 +67,29 @@ update action model =
       model
 
     IncrementSeconds ->
-      if model.time >= model.length
-        then { model |
-            time = 0
-          , round = model.round+1
-          , work = if model.pause then model.work+1 else model.work
-          , bell = if model.pause
-              then Bell.update Bell.StartAudio model.bell
-              else model.bell
-          , pause = not model.pause
-          , length = getCycle cycle model.round
-          , background = Bg.init <| getCycle cycle model.round
-          }
-        else if model.running
-        then { model |
-            background = Bg.update Bg.Increment model.background
-          , time = model.time+1
-          }
-        else
-          model
+      let
+        background = Bg.init <| getCycle cycle model.round
+      in
+        if model.time >= model.length
+          then { model |
+              time = 0
+            , round = model.round+1
+            , work = if model.pause then model.work+1 else model.work
+            , bell = Bell.update Bell.StartAudio model.bell
+            , pause = not model.pause
+            , length = getCycle cycle model.round
+            , background =
+              { background |
+                pause = not model.pause
+              }
+            }
+          else if model.running
+          then { model |
+              background = Bg.update Bg.Increment model.background
+            , time = model.time+1
+            }
+          else
+            model
 
     NewRound ->
       { model |
@@ -117,6 +121,8 @@ view address model =
       [ text <| "Time: " ++ toString model.time ]
     , p []
       [ text <| "Round: " ++ toString model.work ]
+    , p []
+      [ text <| if model.pause then "Pause!" else "WORK!" ]
     , button
       [ onClick address ToggleRunning ]
       [ text <| runningToggleValue model.running ]
@@ -128,9 +134,6 @@ view address model =
       [ text "Skip" ]
     , Bg.view (forwardTo address UpdateBg) model.background
     , Bell.view (forwardTo address UpdateBell) model.bell
-    , button
-      [ onClick address (UpdateBell Bell.StartAudio) ]
-      [ text "Bell" ]
     ]
 
 init : Model

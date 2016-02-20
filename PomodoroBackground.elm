@@ -7,12 +7,14 @@ import Html.Attributes exposing (style)
 type alias Model =
   { state : Float
   , max : Float
+  , pause : Bool
   }
 
 init : Int -> Model
 init max =
   { state = toFloat 0
   , max = toFloat max
+  , pause = True
   }
 
 type Action = Nope
@@ -48,7 +50,9 @@ view address model =
       , ("bottom", "0")
       , ("left", "0")
       , ("width", "100%")
-      , ("background", "hsl(10, 30%, 90%)")
+      , if model.pause
+        then ("background", "hsl(80, 30%, 80%)")
+        else ("background", "hsl(10, 30%, 80%)")
       , ("z-index", "-1")
       , ("height", calcHeight model.state model.max)
       ]

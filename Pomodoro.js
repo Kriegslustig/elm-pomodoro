@@ -10464,7 +10464,9 @@ Elm.PomodoroBackground.make = function (_elm) {
                                               ,{ctor: "_Tuple2",_0: "bottom",_1: "0"}
                                               ,{ctor: "_Tuple2",_0: "left",_1: "0"}
                                               ,{ctor: "_Tuple2",_0: "width",_1: "100%"}
-                                              ,{ctor: "_Tuple2",_0: "background",_1: "hsl(10, 30%, 90%)"}
+                                              ,model.pause ? {ctor: "_Tuple2",_0: "background",_1: "hsl(80, 30%, 80%)"} : {ctor: "_Tuple2"
+                                                                                                                          ,_0: "background"
+                                                                                                                          ,_1: "hsl(10, 30%, 80%)"}
                                               ,{ctor: "_Tuple2",_0: "z-index",_1: "-1"}
                                               ,{ctor: "_Tuple2",_0: "height",_1: A2(calcHeight,model.state,model.max)}]))]),
       _U.list([]));
@@ -10479,8 +10481,8 @@ Elm.PomodoroBackground.make = function (_elm) {
    var Decrement = {ctor: "Decrement"};
    var Increment = {ctor: "Increment"};
    var Nope = {ctor: "Nope"};
-   var init = function (max) {    return {state: $Basics.toFloat(0),max: $Basics.toFloat(max)};};
-   var Model = F2(function (a,b) {    return {state: a,max: b};});
+   var init = function (max) {    return {state: $Basics.toFloat(0),max: $Basics.toFloat(max),pause: true};};
+   var Model = F3(function (a,b,c) {    return {state: a,max: b,pause: c};});
    return _elm.PomodoroBackground.values = {_op: _op,init: init,update: update,view: view,Model: Model,Nope: Nope,Increment: Increment,Decrement: Decrement};
 };
 Elm.PomodoroBell = Elm.PomodoroBell || {};
@@ -10548,14 +10550,15 @@ Elm.Pomodoro.make = function (_elm) {
       var _p0 = action;
       switch (_p0.ctor)
       {case "Nope": return model;
-         case "IncrementSeconds": return _U.cmp(model.time,model.length) > -1 ? _U.update(model,
+         case "IncrementSeconds": var background = $PomodoroBackground.init(A2(getCycle,cycle,model.round));
+           return _U.cmp(model.time,model.length) > -1 ? _U.update(model,
            {time: 0
            ,round: model.round + 1
            ,work: model.pause ? model.work + 1 : model.work
-           ,bell: model.pause ? A2($PomodoroBell.update,$PomodoroBell.StartAudio,model.bell) : model.bell
+           ,bell: A2($PomodoroBell.update,$PomodoroBell.StartAudio,model.bell)
            ,pause: $Basics.not(model.pause)
            ,length: A2(getCycle,cycle,model.round)
-           ,background: $PomodoroBackground.init(A2(getCycle,cycle,model.round))}) : model.running ? _U.update(model,
+           ,background: _U.update(background,{pause: $Basics.not(model.pause)})}) : model.running ? _U.update(model,
            {background: A2($PomodoroBackground.update,$PomodoroBackground.Increment,model.background),time: model.time + 1}) : model;
          case "NewRound": return _U.update(model,{time: model.length});
          case "ToggleRunning": return _U.update(model,{running: $Basics.not(model.running)});
@@ -10573,12 +10576,12 @@ Elm.Pomodoro.make = function (_elm) {
       _U.list([]),
       _U.list([A2($Html.p,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],"Time: ",$Basics.toString(model.time)))]))
               ,A2($Html.p,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],"Round: ",$Basics.toString(model.work)))]))
+              ,A2($Html.p,_U.list([]),_U.list([$Html.text(model.pause ? "Pause!" : "WORK!")]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,ToggleRunning)]),_U.list([$Html.text(runningToggleValue(model.running))]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Reset)]),_U.list([$Html.text("Reset")]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,NewRound)]),_U.list([$Html.text("Skip")]))
               ,A2($PomodoroBackground.view,A2($Signal.forwardTo,address,UpdateBg),model.background)
-              ,A2($PomodoroBell.view,A2($Signal.forwardTo,address,UpdateBell),model.bell)
-              ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,UpdateBell($PomodoroBell.StartAudio))]),_U.list([$Html.text("Bell")]))]));
+              ,A2($PomodoroBell.view,A2($Signal.forwardTo,address,UpdateBell),model.bell)]));
    });
    var IncrementSeconds = {ctor: "IncrementSeconds"};
    var incTime = A2($Signal.sampleOn,$Time.every($Time.second),$Signal.constant(IncrementSeconds));
