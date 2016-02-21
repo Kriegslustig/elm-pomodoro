@@ -9,6 +9,7 @@ import Signal exposing (map, Mailbox, mailbox, Address, sampleOn, constant, merg
 import List exposing (head, take, length, reverse)
 import Maybe exposing (withDefault)
 import Time exposing (every, second)
+import FormatTime exposing (ftime)
 
 type alias Model =
   { time : Int
@@ -118,9 +119,15 @@ view : Address Action -> Model -> Html
 view address model =
   div []
     [ p []
-      [ text <| "Time: " ++ toString model.time ]
+      [ text <|
+        (
+          ftime model.time ++
+          " / " ++
+          ftime (getCycle cycle (model.round - 1))
+        )
+      ]
     , p []
-      [ text <| "Round: " ++ toString model.work ]
+      [ text <| toString model.work ]
     , p []
       [ text <| if model.pause then "Pause!" else "WORK!" ]
     , button

@@ -10442,6 +10442,30 @@ Elm.Html.Events.make = function (_elm) {
                                     ,keyCode: keyCode
                                     ,Options: Options};
 };
+Elm.FormatTime = Elm.FormatTime || {};
+Elm.FormatTime.make = function (_elm) {
+   "use strict";
+   _elm.FormatTime = _elm.FormatTime || {};
+   if (_elm.FormatTime.values) return _elm.FormatTime.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm);
+   var _op = {};
+   var ftime = function (t) {
+      var time = $Basics.toFloat(t * 1000);
+      return A2($Basics._op["++"],
+      $Basics.toString($Basics.round($Time.inMinutes(time))),
+      A2($Basics._op["++"],
+      ":",
+      $Basics.toString(A3($Basics.flip,F2(function (x,y) {    return A2($Basics._op["%"],x,y);}),60,$Basics.round($Time.inSeconds(time))))));
+   };
+   return _elm.FormatTime.values = {_op: _op,ftime: ftime};
+};
 Elm.PomodoroBackground = Elm.PomodoroBackground || {};
 Elm.PomodoroBackground.make = function (_elm) {
    "use strict";
@@ -10523,6 +10547,7 @@ Elm.Pomodoro.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
+   $FormatTime = Elm.FormatTime.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
@@ -10574,8 +10599,12 @@ Elm.Pomodoro.make = function (_elm) {
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([A2($Html.p,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],"Time: ",$Basics.toString(model.time)))]))
-              ,A2($Html.p,_U.list([]),_U.list([$Html.text(A2($Basics._op["++"],"Round: ",$Basics.toString(model.work)))]))
+      _U.list([A2($Html.p,
+              _U.list([]),
+              _U.list([$Html.text(A2($Basics._op["++"],
+              $FormatTime.ftime(model.time),
+              A2($Basics._op["++"]," / ",$FormatTime.ftime(A2(getCycle,cycle,model.round - 1)))))]))
+              ,A2($Html.p,_U.list([]),_U.list([$Html.text($Basics.toString(model.work))]))
               ,A2($Html.p,_U.list([]),_U.list([$Html.text(model.pause ? "Pause!" : "WORK!")]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,ToggleRunning)]),_U.list([$Html.text(runningToggleValue(model.running))]))
               ,A2($Html.button,_U.list([A2($Html$Events.onClick,address,Reset)]),_U.list([$Html.text("Reset")]))

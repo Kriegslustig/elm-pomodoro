@@ -51,8 +51,8 @@ view address model =
       , ("left", "0")
       , ("width", "100%")
       , if model.pause
-        then ("background", "hsl(80, 30%, 80%)")
-        else ("background", "hsl(10, 30%, 80%)")
+          then ("background", "hsl(80, 30%, 80%)")
+          else ("background", "hsl(10, 30%, 80%)")
       , ("z-index", "-1")
       , ("height", calcHeight model.state model.max)
       ]
